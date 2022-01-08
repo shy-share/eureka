@@ -86,6 +86,11 @@ public abstract class AbstractJersey2EurekaHttpClient implements EurekaHttpClien
         String urlPath = "apps/" + info.getAppName();
         Response response = null;
         try {
+            /**
+             * serviceUrl 是自己配置的参考下面这个测试
+             * @see com.netflix.eureka.resources.EurekaClientServerRestIntegrationTest#injectEurekaConfiguration()
+             * http://" + myHostName + ":8080/v2/ 发送这么一个 post的请求
+             * **/
             Builder resourceBuilder = jerseyClient.target(serviceUrl).path(urlPath).request();
             addExtraProperties(resourceBuilder);
             addExtraHeaders(resourceBuilder);

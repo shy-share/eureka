@@ -91,13 +91,13 @@ class InstanceInfoReplicator implements Runnable {
                     @Override
                     public void run() {
                         logger.debug("Executing on-demand update of local InstanceInfo");
-    
+
                         Future latestPeriodic = scheduledPeriodicRef.get();
                         if (latestPeriodic != null && !latestPeriodic.isDone()) {
                             logger.debug("Canceling the latest scheduled update, it will be rescheduled at the end of on demand update");
                             latestPeriodic.cancel(false);
                         }
-    
+
                         InstanceInfoReplicator.this.run();
                     }
                 });
@@ -112,12 +112,20 @@ class InstanceInfoReplicator implements Runnable {
         }
     }
 
+    /**
+     * {@link com.netflix.discovery.InstanceInfoReplicator#start(int)}
+     * @see  com.netflix.discovery.InstanceInfoReplicator#start(int)
+     * 在这里第一次学习了 如何去进行注释中类和方法的跳转
+     *
+     * **/
     public void run() {
         try {
+            //刷新服务实例信息
             discoveryClient.refreshInstanceInfo();
-
+            //dirtyTimestamp 这里一定是非空的 因为在上文的start中设置了时间为当前的时间戳
             Long dirtyTimestamp = instanceInfo.isDirtyWithTime();
             if (dirtyTimestamp != null) {
+                // eureka真正的进行服务注册
                 discoveryClient.register();
                 instanceInfo.unsetIsDirty(dirtyTimestamp);
             }
