@@ -194,14 +194,18 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
         read.lock();
         try {
             Map<String, Lease<InstanceInfo>> gMap = registry.get(registrant.getAppName());
+            //如果说是服务第一次来注册，很明显，通过appName是获取不到map的，是空
+            //此时会创建到一个新的map    其实这个registry map就是一个服务注册表，包含了每个服务的服务实例的注册信息
             REGISTER.increment(isReplication);
             if (gMap == null) {
                 final ConcurrentHashMap<String, Lease<InstanceInfo>> gNewMap = new ConcurrentHashMap<String, Lease<InstanceInfo>>();
                 gMap = registry.putIfAbsent(registrant.getAppName(), gNewMap);
+                //todo 这里有点奇怪，上面明明已经put了，这是担心没有put进去吗？
                 if (gMap == null) {
                     gMap = gNewMap;
                 }
             }
+            //获取这个实例的实例id，如果是第一次注册的话，应该是为null
             Lease<InstanceInfo> existingLease = gMap.get(registrant.getId());
             // Retain the last dirty timestamp without overwriting it, if there is already a lease
             if (existingLease != null && (existingLease.getHolder() != null)) {
@@ -228,11 +232,14 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                 }
                 logger.debug("No previous lease information found; it is new registration");
             }
+            //在这里，instanceInfo被封装成为了一个lease对象
             Lease<InstanceInfo> lease = new Lease<>(registrant, leaseDuration);
             if (existingLease != null) {
                 lease.setServiceUpTimestamp(existingLease.getServiceUpTimestamp());
             }
+            //新注册进来的实例直接put进去对应的服务map中
             gMap.put(registrant.getId(), lease);
+            //最近注册的实例队列
             recentRegisteredQueue.add(new Pair<Long, String>(
                     System.currentTimeMillis(),
                     registrant.getAppName() + "(" + registrant.getId() + ")"));

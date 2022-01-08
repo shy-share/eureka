@@ -132,6 +132,7 @@ public class ApplicationResource {
 
     /**
      * Registers information about a particular instance for an
+     * 服务实例注册
      * {@link com.netflix.discovery.shared.Application}.
      *
      * @param info
@@ -171,6 +172,7 @@ public class ApplicationResource {
                 if (experimental) {
                     String entity = "DataCenterInfo of type " + dataCenterInfo.getClass() + " must contain a valid id";
                     return Response.status(400).entity(entity).build();
+                    //判断是否是亚马逊的应该是写在配置类中的，这个没有必要写在这里
                 } else if (dataCenterInfo instanceof AmazonInfo) {
                     AmazonInfo amazonInfo = (AmazonInfo) dataCenterInfo;
                     String effectiveId = amazonInfo.get(AmazonInfo.MetaDataKey.instanceId);
@@ -184,6 +186,7 @@ public class ApplicationResource {
         }
 
         registry.register(info, "true".equals(isReplication));
+        //204 不应该这么玩的，应该是写成枚举类的
         return Response.status(204).build();  // 204 to be backwards compatible
     }
 
