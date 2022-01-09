@@ -157,6 +157,7 @@ public class ApplicationsResource {
                     .header(HEADER_CONTENT_TYPE, returnMediaType)
                     .build();
         } else {
+            //多级缓存机制 读缓存 读写缓存 从注册表中读取
             response = Response.ok(responseCache.get(cacheKey))
                     .build();
         }

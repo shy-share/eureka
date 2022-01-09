@@ -119,7 +119,7 @@ public class ResponseCacheImpl implements ResponseCache {
     private final AbstractInstanceRegistry registry;
     private final EurekaServerConfig serverConfig;
     private final ServerCodecs serverCodecs;
-
+    //服务端解析实现
     ResponseCacheImpl(EurekaServerConfig serverConfig, ServerCodecs serverCodecs, AbstractInstanceRegistry registry) {
         this.serverConfig = serverConfig;
         this.serverCodecs = serverCodecs;
@@ -127,6 +127,7 @@ public class ResponseCacheImpl implements ResponseCache {
         this.registry = registry;
 
         long responseCacheUpdateIntervalMs = serverConfig.getResponseCacheUpdateIntervalMs();
+        //读写缓存过期时间180s
         this.readWriteCacheMap =
                 CacheBuilder.newBuilder().initialCapacity(serverConfig.getInitialCapacityOfResponseCache())
                         .expireAfterWrite(serverConfig.getResponseCacheAutoExpirationInSeconds(), TimeUnit.SECONDS)
@@ -151,7 +152,7 @@ public class ResponseCacheImpl implements ResponseCache {
                                 return value;
                             }
                         });
-
+        //responseCacheUpdateIntervalMs 30s
         if (shouldUseReadOnlyResponseCache) {
             timer.schedule(getCacheUpdateTask(),
                     new Date(((System.currentTimeMillis() / responseCacheUpdateIntervalMs) * responseCacheUpdateIntervalMs)
@@ -166,6 +167,7 @@ public class ResponseCacheImpl implements ResponseCache {
         }
     }
 
+    //将读写锁的map中的数据刷新到 只读锁中
     private TimerTask getCacheUpdateTask() {
         return new TimerTask() {
             @Override

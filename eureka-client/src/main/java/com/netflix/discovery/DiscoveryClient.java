@@ -1010,8 +1010,8 @@ public class DiscoveryClient implements EurekaClient {
             //客户端版本不支持查询增量数据
             if (clientConfig.shouldDisableDelta()
                     || (!Strings.isNullOrEmpty(clientConfig.getRegistryRefreshSingleVipAddress()))
-                    || forceFullRegistryFetch
-                    || (applications == null)
+                    || forceFullRegistryFetch //这个是false
+                    || (applications == null) //如果不是第一次获取注册表，那这个applications一定不会为null
                     || (applications.getRegisteredApplications().size() == 0)
                     || (applications.getVersion() == -1)) //Client application does not have latest library supporting delta
             {
@@ -1312,6 +1312,7 @@ public class DiscoveryClient implements EurekaClient {
     private void initScheduledTasks() {
         if (clientConfig.shouldFetchRegistry()) {
             // registry cache refresh timer
+            //默认30s
             int registryFetchIntervalSeconds = clientConfig.getRegistryFetchIntervalSeconds();
             int expBackOffBound = clientConfig.getCacheRefreshExecutorExponentialBackOffBound();
             cacheRefreshTask = new TimedSupervisorTask(
