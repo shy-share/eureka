@@ -948,14 +948,16 @@ public class DiscoveryClient implements EurekaClient {
             if (statusChangeListener != null && applicationInfoManager != null) {
                 applicationInfoManager.unregisterStatusChangeListener(statusChangeListener.getId());
             }
-
+            //将线程池都关闭，释放资源，停止运行线程
             cancelScheduledTasks();
 
             // If APPINFO was registered
             if (applicationInfoManager != null
                     && clientConfig.shouldRegisterWithEureka()
                     && clientConfig.shouldUnregisterOnShutdown()) {
+                //将服务实例的状态改为下线
                 applicationInfoManager.setInstanceStatus(InstanceStatus.DOWN);
+                //真正下线服务的方法
                 unregister();
             }
 
@@ -1145,11 +1147,12 @@ public class DiscoveryClient implements EurekaClient {
         long currentUpdateGeneration = fetchRegistryGeneration.get();
 
         Applications delta = null;
+        //获取到增量的注册表
         EurekaHttpResponse<Applications> httpResponse = eurekaTransport.queryClient.getDelta(remoteRegionsRef.get());
         if (httpResponse.getStatusCode() == Status.OK.getStatusCode()) {
             delta = httpResponse.getEntity();
         }
-
+        //如果没有获取到增量的，就去获取全量的注册表
         if (delta == null) {
             logger.warn("The server does not allow the delta revision to be applied because it is not safe. "
                     + "Hence got the full registry.");
@@ -1160,6 +1163,7 @@ public class DiscoveryClient implements EurekaClient {
             if (fetchRegistryUpdateLock.tryLock()) {
                 try {
                     updateDelta(delta);
+                    //获取服务端注册表的hashcode
                     reconcileHashCode = getReconcileHashCode(applications);
                 } finally {
                     fetchRegistryUpdateLock.unlock();
@@ -1168,6 +1172,7 @@ public class DiscoveryClient implements EurekaClient {
                 logger.warn("Cannot acquire update lock, aborting getAndUpdateDelta");
             }
             // There is a diff in number of instances for some reason
+            //服务端和客户端的hashcode进行对比
             if (!reconcileHashCode.equals(delta.getAppsHashCode()) || clientConfig.shouldLogDeltaDiff()) {
                 reconcileAndLogDifference(delta, reconcileHashCode);  // this makes a remoteCall
             }
@@ -1250,8 +1255,10 @@ public class DiscoveryClient implements EurekaClient {
     private void updateDelta(Applications delta) {
         int deltaCount = 0;
         for (Application app : delta.getRegisteredApplications()) {
+
             for (InstanceInfo instance : app.getInstances()) {
                 Applications applications = getApplications();
+                //获取本地缓存的注册表
                 String instanceRegion = instanceRegionChecker.getInstanceRegion(instance);
                 if (!instanceRegionChecker.isLocalRegion(instanceRegion)) {
                     Applications remoteApps = remoteRegionVsApps.get(instanceRegion);
@@ -1335,6 +1342,7 @@ public class DiscoveryClient implements EurekaClient {
             logger.info("Starting heartbeat executor: " + "renew interval is: {}", renewalIntervalInSecs);
 
             // Heartbeat timer
+            //获取时间默认为30s
             heartbeatTask = new TimedSupervisorTask(
                     "heartbeat",
                     scheduler,

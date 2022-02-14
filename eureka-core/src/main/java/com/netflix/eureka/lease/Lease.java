@@ -60,6 +60,7 @@ public class Lease<T> {
      * {@link #DEFAULT_DURATION_IN_SECS}.
      */
     public void renew() {
+        //duretion默认我90s
         lastUpdateTimestamp = System.currentTimeMillis() + duration;
 
     }

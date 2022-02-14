@@ -309,6 +309,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
             Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
             Lease<InstanceInfo> leaseToCancel = null;
             if (gMap != null) {
+                //本地注册表中移除这个实例信息
                 leaseToCancel = gMap.remove(id);
             }
             recentCanceledQueue.add(new Pair<Long, String>(System.currentTimeMillis(), appName + "(" + id + ")"));
@@ -327,11 +328,13 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                 String svip = null;
                 if (instanceInfo != null) {
                     instanceInfo.setActionType(ActionType.DELETED);
+                    //将服务实例信息放入到最近改变的队列中
                     recentlyChangedQueue.add(new RecentlyChangedItem(leaseToCancel));
                     instanceInfo.setLastUpdatedTimestamp();
                     vip = instanceInfo.getVIPAddress();
                     svip = instanceInfo.getSecureVipAddress();
                 }
+                //服务实例变更了，必须将之前的缓存都清楚掉
                 invalidateCache(appName, vip, svip);
                 logger.info("Cancelled instance {}/{} (replication={})", appName, id, isReplication);
             }
@@ -363,6 +366,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
         if (gMap != null) {
             leaseToRenew = gMap.get(id);
         }
+        //代码规约： ifelse多层嵌套 可读性很差
         if (leaseToRenew == null) {
             RENEW_NOT_FOUND.increment(isReplication);
             logger.warn("DS: Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
@@ -884,6 +888,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
         Map<String, Application> applicationInstancesMap = new HashMap<String, Application>();
         write.lock();
         try {
+            //最近三分钟内有变化的服务实例的注册表
             Iterator<RecentlyChangedItem> iter = this.recentlyChangedQueue.iterator();
             logger.debug("The number of elements in the delta queue is : {}",
                     this.recentlyChangedQueue.size());
@@ -1352,6 +1357,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
             public void run() {
                 Iterator<RecentlyChangedItem> it = recentlyChangedQueue.iterator();
                 while (it.hasNext()) {
+                    //上次记录比当前时间-3分钟要小
                     if (it.next().getLastUpdateTime() <
                             System.currentTimeMillis() - serverConfig.getRetentionTimeInMSInDeltaQueue()) {
                         it.remove();

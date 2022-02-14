@@ -99,6 +99,7 @@ public class TimedSupervisorTask extends TimerTask {
             }
 
             if (!scheduler.isShutdown()) {
+                //如果这个任务执行成功之后，会延迟一段时间来继续执行这个任务
                 scheduler.schedule(this, delay.get(), TimeUnit.MILLISECONDS);
             }
         }

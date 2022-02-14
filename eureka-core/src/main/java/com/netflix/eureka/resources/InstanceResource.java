@@ -101,6 +101,7 @@ public class InstanceResource {
      *            last timestamp when this instance information was updated.
      * @return response indicating whether the operation was a success or
      *         failure.
+     *         服务续约的方法
      */
     @PUT
     public Response renewLease(
@@ -109,6 +110,7 @@ public class InstanceResource {
             @QueryParam("status") String status,
             @QueryParam("lastDirtyTimestamp") String lastDirtyTimestamp) {
         boolean isFromReplicaNode = "true".equals(isReplication);
+        //通过注册表的renew方法完成服务续约
         boolean isSuccess = registry.renew(app.getName(), id, isFromReplicaNode);
 
         // Not found in the registry, immediately ask for a register
