@@ -61,6 +61,7 @@ public class Lease<T> {
      */
     public void renew() {
         //duretion默认我90s
+        //保持心跳靠的就是这个
         lastUpdateTimestamp = System.currentTimeMillis() + duration;
 
     }
@@ -109,6 +110,8 @@ public class Lease<T> {
      * @param additionalLeaseMs any additional lease time to add to the lease evaluation in ms.
      */
     public boolean isExpired(long additionalLeaseMs) {
+        //当前时间是否>了上一次心跳时间+90s+补偿时间
+        //其实就是在90s+补偿时间 时间内，有没有心跳发送过来，其实是三分钟没有心跳
         return (evictionTimestamp > 0 || System.currentTimeMillis() > (lastUpdateTimestamp + duration + additionalLeaseMs));
     }
 
