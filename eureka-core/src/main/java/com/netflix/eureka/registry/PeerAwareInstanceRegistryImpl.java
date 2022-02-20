@@ -241,7 +241,7 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
     @Override
     public void openForTraffic(ApplicationInfoManager applicationInfoManager, int count) {
         // Renewals happen every 30 seconds and for a minute it should be a factor of 2.
-        //todo 这里好像不对了 ，数量不应该是两倍的吗?
+        //shytodo 这里好像不对了 ，数量不应该是两倍的吗?
         this.expectedNumberOfClientsSendingRenews = count;
         updateRenewsPerMinThreshold();
         logger.info("Got {} instances from neighboring DS node", count);
