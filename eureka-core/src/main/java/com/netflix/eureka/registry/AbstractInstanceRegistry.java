@@ -226,6 +226,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                 synchronized (lock) {
                     if (this.expectedNumberOfClientsSendingRenews > 0) {
                         // Since the client wants to register it, increase the number of clients sending renews
+                        //新增加一个实例，每分钟心跳次数+1
                         this.expectedNumberOfClientsSendingRenews = this.expectedNumberOfClientsSendingRenews + 1;
                         updateRenewsPerMinThreshold();
                     }
@@ -343,6 +344,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
         }
 
         synchronized (lock) {
+            //服务下线的时候，每分钟获取的心跳次数-1
             if (this.expectedNumberOfClientsSendingRenews > 0) {
                 // Since the client wants to cancel it, reduce the number of clients to send renews.
                 this.expectedNumberOfClientsSendingRenews = this.expectedNumberOfClientsSendingRenews - 1;

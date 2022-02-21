@@ -191,6 +191,7 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
      *
      */
     private void scheduleRenewalThresholdUpdateTask() {
+        //15分钟执行一次
         timer.schedule(new TimerTask() {
                            @Override
                            public void run() {
@@ -209,10 +210,13 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
     public int syncUp() {
         // Copy entire entry from neighboring DS node
         int count = 0;
-
+        //默认重试次数 是5次
         for (int i = 0; ((i < serverConfig.getRegistrySyncRetries()) && (count == 0)); i++) {
             if (i > 0) {
                 try {
+                    //如果第一次没有在自己本地的eureka client中获取到注册表
+                    //说民自己本地的eureka client还没有任何其他的eureka server中获取注册表
+                    //所以此时重试，等待30s
                     Thread.sleep(serverConfig.getRegistrySyncRetryWaitMs());
                 } catch (InterruptedException e) {
                     logger.warn("Interrupted during registry transfer..");
@@ -238,11 +242,14 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
         return count;
     }
 
+    //自动故障处理
     @Override
     public void openForTraffic(ApplicationInfoManager applicationInfoManager, int count) {
         // Renewals happen every 30 seconds and for a minute it should be a factor of 2.
         //shytodo 这里好像不对了 ，数量不应该是两倍的吗?
+        //设置期待的心跳次数等于 注册表的数量
         this.expectedNumberOfClientsSendingRenews = count;
+        //更新每分钟获取到的心跳次数的 一个阈值
         updateRenewsPerMinThreshold();
         logger.info("Got {} instances from neighboring DS node", count);
         logger.info("Renew threshold is: {}", numberOfRenewsPerMinThreshold);
@@ -630,7 +637,7 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
     /**
      * Replicates all eureka actions to peer eureka nodes except for replication
      * traffic to this node.
-     *
+     *同步
      */
     private void replicateToPeers(Action action, String appName, String id,
                                   InstanceInfo info /* optional */,
@@ -650,6 +657,7 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
                 if (peerEurekaNodes.isThisMyUrl(node.getServiceUrl())) {
                     continue;
                 }
+                //同步请求到其他实例
                 replicateInstanceActionsToPeers(action, appName, id, info, newStatus, node);
             }
         } finally {
