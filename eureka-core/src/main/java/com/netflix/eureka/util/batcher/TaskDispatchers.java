@@ -31,7 +31,7 @@ public class TaskDispatchers {
             }
         };
     }
-
+    //同步任务分发
     public static <ID, T> TaskDispatcher<ID, T> createBatchingTaskDispatcher(String id,
                                                                              int maxBufferSize,
                                                                              int workloadSize,
@@ -40,6 +40,7 @@ public class TaskDispatchers {
                                                                              long congestionRetryDelayMs,
                                                                              long networkFailureRetryMs,
                                                                              TaskProcessor<T> taskProcessor) {
+        //执行批处理任务
         final AcceptorExecutor<ID, T> acceptorExecutor = new AcceptorExecutor<>(
                 id, maxBufferSize, workloadSize, maxBatchingDelay, congestionRetryDelayMs, networkFailureRetryMs
         );

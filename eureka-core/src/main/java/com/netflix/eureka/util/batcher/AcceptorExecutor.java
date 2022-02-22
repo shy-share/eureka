@@ -102,6 +102,7 @@ class AcceptorExecutor<ID, T> {
         this.trafficShaper = new TrafficShaper(congestionRetryDelayMs, networkFailureRetryMs);
 
         ThreadGroup threadGroup = new ThreadGroup("eurekaTaskExecutors");
+        //AcceptorRunner 真正运行批处理
         this.acceptorThread = new Thread(threadGroup, new AcceptorRunner(), "TaskAcceptor-" + id);
         this.acceptorThread.setDaemon(true);
         this.acceptorThread.start();
